@@ -1,3 +1,5 @@
+import numpy as np
+
 class MonotoneError(Exception):
   def __init__(self, a, va, b, vb):
     self.a = np.array(a)
@@ -23,4 +25,4 @@ class ScoreCreationError(Exception):
     self.msg = msg
 
   def __str__(self):
-    return msg
+    return self.msg
