@@ -1,18 +1,19 @@
 # HiScore
 
-A *scoring function* maps between objects (tuples of numerical attributes) and scores (a single numerical value). Scoring functions are also ranking functions; just order objects by their score. **HiScore** is a *scoring engine* that uses *reference sets* to generate scoring functions based on expert knowledge. 
+A *scoring function* maps between objects (tuples of numerical attributes) and scores (a single numerical value). Scoring functions can rank objects too; just order by score. **HiScore** is a python library for making scoring functions through *reference sets*, which are sets of objects that get assigned scores.
 
 ## Attributes
-Crucially, the attributes involved in a score must be **monotone**. This means that a score must always be non-decreasing or non-increasing if the value in each dimension moves in isolation. This is typically a natural restriction as the attributes of an object usually measure something that is either good or bad.
+**HiScore** requires that attributes involved in a score must be **monotone**. This means that a score must always be non-decreasing or non-increasing if the value in each dimension moves in isolation. This is typically a natural restriction as the attributes of an object usually measure something that is either good or bad.
 
 ## Example Usage
 For instance, you may be a network security company that assess threats on two axes:
+
 1. Your certainty that the threat is real ("Certainty"),
 2. The potential risk from the threat. ("Risk")
 
-Your goal is to develop a scoring function from 0 to 100 that is increasing in certainty and risk.
+and you want to develop a scoring function from 0 to 100 that is increasing in certainty and risk.
 
-Both your certainty and risk attributes are in [0,10], and you develop the following reference set mapping values to the scores you think are appropriate:
+Both your certainty and risk attributes are in [0,10], and you develop the following reference set that maps objects to the scores you think are appropriate:
 
 	Certainty | Risk | Score
 	--------- | ---- | -----
@@ -47,7 +48,7 @@ And also obeying monotonicity, so that increasing certainty or risk increases th
 	np.round(score_function.calculate([(7,7),(8,7),(9,7),(10,7)]))
 	# Returns [49., 59., 70., 78.]
 
-# API
+## API
 
 	create
 
@@ -55,7 +56,7 @@ And also obeying monotonicity, so that increasing certainty or risk increases th
 
 	value_bounds
 
-# Why HiScore?
+## Why HiScore?
 
 **HiScore** is designed with three qualities in mind:
 + Ease-of-Use. While **HiScore** can produce mathematically sophisticated scores with complex non-linear relationships between attributes, **HiScore** takes care of all this math internally. It requires only domain expertise, *not* mathematical expertise.
@@ -71,18 +72,18 @@ The traditional approach to scoring looks like this:
 
 While this approach can be quick and intuitive, it ossifies quickly; after a certain point experts stop modifying the score even when they see mis-scored points because fiddling with coefficients introduces more errors than it fixes.
 
-In contrast, **HiScore** allows domain experts to fix observed errors quickly: just add the erroneous point (with its correct score) to the reference set, and re-run the scoring engine. The result is a powerful, flexible, maintainable scoring system.
+In contrast, **HiScore** allows domain experts to fix observed errors quickly: just add the erroneous point (with its correct score) to the reference set, and re-run the scoring engine.
 
-# Requirements
+## Requirements
 
-In addition to `numpy`, **HiScore** requires the python libraries of the Gurobi optimizer, available at gurobi.com, in order to `hiscore.create` the scoring engine. Once created, further calls (e.g., to `calculate`) do not require use of the Gurobi libraries.
+In addition to `numpy`, **HiScore** requires the python libraries of the [Gurobi optimizer](http://www.gurobi.com) in order to `hiscore.create` scoring functions. Once created, further calls (e.g., to `calculate`) do not require use of the Gurobi libraries.
 
-While Gurobi is not free software, it offers free academic licensing and free evaluation copies.
+While Gurobi is not free software, it offers several attractive licensing options, including free academic licensing and AWS integration.
 
-# Credits
+## Credits
 The reference set approach to scoring was originally developed while I was Scientist-in-Residence at the [US Green Building Council (USGBC)](http://www.usgbc.org/), where it forms the core of the new LEED Performance Score.
 
-Development of the theoretical approach expressed in **HiScore** is credited to collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd), with assistance in literature review from [Greg Fasshauer](http://www.math.iit.edu/~fass/). The algorithm itself is a practical modification of the sup-inf technique proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x).
+Development of the theoretical approach of **HiScore** is credited to collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd). The algorithm itself is a practical modification of the sup-inf approach to shape-preserving interpolation proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x).
 
-# Need Help?
+## Need Help?
 If you're looking for help developing a score for your particular domain, I'd love to chat! Contact me directly at <aothman@cs.cmu.edu>.
