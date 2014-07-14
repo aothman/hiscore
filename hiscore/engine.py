@@ -6,7 +6,7 @@ def create(reference_set_dict, monotone_relationship, minval=None, maxval=None):
 
 class HiScoreEngine:
   def __init__(self,reference_set_dict, monotone_relationship, minval, maxval):
-    np_input = np.array(reference_set_dict.keys())
+    np_input = np.array(reference_set_dict.keys(), dtype=float)
     self.monorel = np.array(monotone_relationship)
     self.bounds = zip(np.amin(np_input, axis=0),np.amax(np_input, axis=0))
     self.scale = self.monorel*(np.amax(np_input, axis=0)-np.amin(np_input, axis=0))
@@ -181,70 +181,3 @@ class HiScoreEngine:
     for p in points_less_than:
       ltbound = max(self.points[p],ltbound)
     return ltbound, gtbound
-
-  def picture(self,indices,values,labels=['Dimension 1','Dimension 2','Score']):
-    from mpl_toolkits.mplot3d import Axes3D
-    from matplotlib import cm
-    import matplotlib.pyplot as plt
-    
-    xs = []
-    ys = []
-    epoints = []
-    dim1 = indices[0]
-    dim2 = indices[1]
-    # Get the points to evaluate at
-    for x in np.linspace(self.bounds[dim1][0],self.bounds[dim1][1],50):
-      for y in np.linspace(self.bounds[dim2][0],self.bounds[dim2][1],50):
-        xs.append(x)
-        ys.append(y)
-        epoint = []
-        for i in xrange(self.dim):
-          if i==indices[0]:
-            epoint.append(x)
-          elif i==indices[1]:
-            epoint.append(y)
-          else:
-            epoint.append(values[i])
-        epoints.append(epoint)
-    
-    zs = self.calculate(epoints)
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.plot_trisurf(xs, ys, zs, cmap=cm.jet, linewidth=0.2)
-    ax.set_xlabel(labels[0])
-    ax.set_ylabel(labels[1])
-    ax.set_zlabel(labels[2])
-    plt.show()
-
-
-if __name__=='__main__':
-  from random import *
-  from math import floor
-  done = False
-  while not done:
-    try:
-      phsh = {(0,0,1): 0.0, (1,1,0): 100.0}
-      for i in xrange(98):
-        p = [0,0,0]
-        for j in xrange(3):
-          p[j] = random()
-        v = floor(40*np.sqrt(((p[0]+1-p[2])/2.0)))+floor(20*np.sqrt(p[0]*p[1]))+floor(30*p[1]*(1-p[2]))+floor(uniform(0,10))
-        phsh[tuple(p)]=v
-      m=create(phsh,[1,1,-1],minval=0,maxval=100) 
-      done=True
-    except MonotoneError as m:
-      continue
-  ps = phsh.keys()
-  calcs = m.calculate(ps)
-  for p,v in zip(ps,calcs):
-    #if abs(phsh[p]-v) > 1e-4:
-    #  print p,phsh[p],v
-    print p,phsh[p],v
-
-  #vals = np.linspace(0,1,1000)
-  #ys = m.calculate(vals)
-  #import matplotlib.pyplot as plt
-  #plt.plot(vals,ys)
-  #plt.scatter(ps,phsh.values(),s=50)
-  #plt.show()
-  m.picture([1,2],[0.5,0,0])
