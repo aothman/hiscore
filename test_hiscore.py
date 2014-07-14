@@ -3,9 +3,14 @@ import unittest
 import hiscore
 import pytest
 from hiscore.engine import create
-from hiscore.errors import MonotoneError, MonotoneBoundsError
+from hiscore.errors import MonotoneError, MonotoneBoundsError, ScoreCreationError
 
 class EngineTestCase(unittest.TestCase):
+	def test_bad_monotone_vector(self):
+		mydict = {(0,0,0): 100, (1,1,1): 0}
+		with pytest.raises(ScoreCreationError):
+			create(mydict,[-1,-1,0])
+
 	def test_non_monotone_mixed(self):
 		mydict = {(0,0,5): 100, (5,5,0): 0}
 		with pytest.raises(MonotoneError):

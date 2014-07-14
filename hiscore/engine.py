@@ -8,7 +8,8 @@ class HiScoreEngine:
   def __init__(self,reference_set_dict, monotone_relationship, minval, maxval):
     np_input = np.array(reference_set_dict.keys(), dtype=float)
     self.monorel = np.array(monotone_relationship)
-    self.bounds = zip(np.amin(np_input, axis=0),np.amax(np_input, axis=0))
+    if not np.sum(np.absolute(self.monorel)) == len(monotone_relationship):
+      raise ScoreCreationError("Entries in monotone_relationship vector must be 1 or -1 exclusively.")
     self.scale = self.monorel*(np.amax(np_input, axis=0)-np.amin(np_input, axis=0))
     self.points = {}
     for (p,v) in reference_set_dict.iteritems():
