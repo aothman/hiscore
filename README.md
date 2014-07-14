@@ -3,10 +3,14 @@
 A *scoring function* maps between objects (tuples of numerical attributes) and scores (a single numerical value). Scoring functions are also ranking functions; just order objects by their score. **HiScore** is a *scoring engine* that uses *reference sets* to generate scoring functions based on expert knowledge. 
 
 ## Attributes
-Crucially, the attributes involved in a score must be **monotone**. This means that a score must always be non-decreasing or non-increasing if the value in each dimension moves in isolation. This is typically a natural restriction, as the attributes of an object usually measure something that is either good or bad.
+Crucially, the attributes involved in a score must be **monotone**. This means that a score must always be non-decreasing or non-increasing if the value in each dimension moves in isolation. This is typically a natural restriction as the attributes of an object usually measure something that is either good or bad.
 
 ## Example Usage
-For instance, you may be a network security company that assess threats on two axes, your certainty that the threat is real, and the potential risk from the threat. Your goal is to develop a scoring function from 0 to 100 that is increasing in each of these dimensions.
+For instance, you may be a network security company that assess threats on two axes:
+1. Your certainty that the threat is real ("Certainty"),
+2. The potential risk from the threat. ("Risk")
+
+Your goal is to develop a scoring function from 0 to 100 that is increasing in certainty and risk.
 
 Both your certainty and risk attributes are in [0,10], and you develop the following reference set mapping values to the scores you think are appropriate:
 
@@ -28,15 +32,15 @@ You can generate a scoring function by calling `hiscore.create` with this refere
 
 The resulting function interpolates exactly through the reference set:
 	
-	score_function.calculate([(0,0), (8,10)])
-	# Returns [0., 80.]
+	zip(reference_set.keys(), score_function.calculate(reference_set.keys())
+	# Returns [((10, 8), 90.0), ((0, 0), 0.0), ((5, 5), 20.0), ((10, 10), 100.0), ((3, 10), 20.0), ((8, 10), 80.0), ((10, 2), 15.0)]
 
-And also produces reasonable estimates for points that are not in the reference set
+While producing reasonable estimates for points that are not in the reference set
 
 	np.round(score_function.calculate([(9,9)]))
 	# Returns [84.]
 
-While obeying monotonicity, so that increasing certainty or risk increases the score
+And also obeying monotonicity, so that increasing certainty or risk increases the score
 
 	np.round(score_function.calculate([(7,7),(7,8),(7,9),(7,10)]))
 	# Returns [49., 58., 62., 68.]
@@ -59,6 +63,7 @@ While obeying monotonicity, so that increasing certainty or risk increases the s
 + Maintainability. **HiScore** is designed to make scoring functions that get better over time.
 
 The traditional approach to scoring looks like this:
+
 1.  A mathematically adept domain expert comes up with a set of descriptive scoring functions. (For instance, a radial function scoring a location's distance to the nearest grocery store, or an exponential  dropoff function scoring time since a credit card applicant's last credit default.)
 2. The domain expert determines how to combine those functions.
 3. The domain expert checks the resulting score function against a reference set of objects to see if the score of those objects "looks right".
@@ -77,7 +82,7 @@ While Gurobi is not free software, it offers free academic licensing and free ev
 # Credits
 The reference set approach to scoring was originally developed while I was Scientist-in-Residence at the [US Green Building Council (USGBC)](http://www.usgbc.org/), where it forms the core of the new LEED Performance Score.
 
-Development of the theoretical approach expressed in **HiScore** is credited to collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd), with assistance in literature review from [Greg Fasshauer](http://www.math.iit.edu/~fass/). The algorithm itself is a modification of a technique originally proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x).
+Development of the theoretical approach expressed in **HiScore** is credited to collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd), with assistance in literature review from [Greg Fasshauer](http://www.math.iit.edu/~fass/). The algorithm itself is a practical modification of the sup-inf technique proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x).
 
 # Need Help?
-If you're looking for help developing a score for your particular domain, I'd love to chat! please contact me directly at <aothman@cs.cmu.edu>.
+If you're looking for help developing a score for your particular domain, I'd love to chat! Contact me directly at <aothman@cs.cmu.edu>.
