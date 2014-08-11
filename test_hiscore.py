@@ -58,4 +58,3 @@ class EngineTestCase(unittest.TestCase):
 		self.assertEqual(myfunc.value_bounds((0.5,0.5,0.5)),(0,50))
 		myfunc = create(mydict,[-1,-1,-1],maxval=100,minval=0.0)
 		self.assertEqual(myfunc.value_bounds((0.5,0.5,0.5)),(50,100))
-
