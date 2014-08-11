@@ -99,9 +99,9 @@ class HiScoreEngine:
     # Post-mortem...
     if model.status != grb.GRB.OPTIMAL:
       if model.status == grb.GRB.INFEASIBLE or model.status == grb.GRB.INF_OR_UNBD:
-        raise ScoreCreationError("Infeasible model")
+        raise ScoreCreationError("Could not create scoring function: Model Infeasible")
       else:
-        raise ScoreCreationError("Model not optimal!")
+        raise ScoreCreationError("Could not create scoring function: Optimization Failed")
       return None
     # Pull out the coefficients from the variables
     plus_vars = [[(supv.x,infv.x) for (supv,infv) in zip(s,i)] for (s,i) in zip(sup_plus_vars,inf_plus_vars)]
@@ -160,7 +160,7 @@ class HiScoreEngine:
 
   def calculate(self,xs):
     retval = []
-    for (i,x) in enumerate(xs):
+    for x in xs:
       supval = min([p.find_sup(np.array(x)/self.scale) for p in self.point_objs])
       infval = max([p.find_inf(np.array(x)/self.scale) for p in self.point_objs])
       if self.maxval is not None:
