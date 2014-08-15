@@ -1,3 +1,11 @@
+"""
+hiscore.errors
+
+Errors that can arise from creating scores.
+
+:copyright: (c) 2014 by Abraham Othman.
+:license: AGPL, see LICENSE for details.
+"""
 import numpy as np
 
 class MonotoneError(Exception):

@@ -1,3 +1,4 @@
+""" Tests for HiScore """
 import numpy as np
 import unittest
 import hiscore
@@ -32,7 +33,7 @@ class EngineTestCase(unittest.TestCase):
 			create(mydict,[1,1,1],minval=10)
 	
 	def test_max_bounds(self):
-		mydict = {(1,1,1): 100, (0,0,0): 0}
+		mydict = {(100,100,100): 100, (0,0,0): 0}
 		with pytest.raises(MonotoneBoundsError):
 			create(mydict,[1,1,1],maxval=90)
 	
@@ -53,8 +54,8 @@ class EngineTestCase(unittest.TestCase):
 		self.assertEqual(myfunc.value_bounds((0.5,0.5,0.5)),(20,50))
 
 	def test_value_bounds_min_max(self):
-		mydict = {(1,1,1): 50, (0,2,0): 50}
+		mydict = {(100,100,100): 50, (0,200,0): 50}
 		myfunc = create(mydict,[1,1,1],maxval=100,minval=0.0)
-		self.assertEqual(myfunc.value_bounds((0.5,0.5,0.5)),(0,50))
+		self.assertEqual(myfunc.value_bounds((50,50,50)),(0,50))
 		myfunc = create(mydict,[-1,-1,-1],maxval=100,minval=0.0)
-		self.assertEqual(myfunc.value_bounds((0.5,0.5,0.5)),(50,100))
+		self.assertEqual(myfunc.value_bounds((50,50,50)),(50,100))
