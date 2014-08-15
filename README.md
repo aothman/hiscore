@@ -57,21 +57,10 @@ np.round(score_function.calculate([(7,7),(8,7),(9,7),(10,7)]))
 # Returns [49., 59., 70., 78.]
 ```
 
-## API
+And here's a three-dimensional figure of the resulting scoring function:
 
-*	create(reference_set_dict, monotone_relationship, minval=None, maxval=None)
-	*	reference_set_dict: The reference set, keys are objects (tuples) and values are scores.
-	*	monotone_relationship: An iterable with entries that are +/- 1. 1 means the score function should be increasing along that attribute, -1 means the score function should be decreasing.
-	*	minval, maxval: Floats, the minimum and maximum values for the function.
-	*	Returns a HiScoreEngine object that can be queried for function values.
+![Demonstration Score Function](http://www.cs.cmu.edu/~aothman/score_function_demo.png)
 
-*	calculate(xs)
-	*	xs: An iterable of tuples
-	*	Returns score function evaluations at each of the tuples
-
-*	value_bounds(object)
-	* 	object: A single tuple
-	* 	Returns (minimum value, maximum value) based on other entries in the reference set and defined limits.
 
 ## Why HiScore?
 
@@ -90,6 +79,22 @@ The traditional approach to scoring looks like this:
 While this approach can be quick and intuitive, it ossifies quickly; eventually experts stop modifying the score even when they see mis-scored points because fiddling with basis functions and their coefficients introduces more errors than it fixes.
 
 In contrast, **HiScore** allows domain experts to fix observed errors quickly: just add the erroneous point (with its correct score) to the reference set, and re-run the scoring engine.
+
+## API
+
+*	create(reference_set_dict, monotone_relationship, minval=None, maxval=None)
+	*	reference_set_dict: The reference set, keys are objects (tuples) and values are scores.
+	*	monotone_relationship: An iterable with entries that are +/- 1. +1 means the score function should be increasing along that attribute, -1 means the score function should be decreasing.
+	*	minval, maxval: Floats, the minimum and maximum values for the function.
+	*	Returns a HiScoreEngine object that can be queried for function values.
+
+*	calculate(xs)
+	*	xs: An iterable of tuples
+	*	Returns score function evaluations at each of the tuples
+
+*	value_bounds(object)
+	* 	object: A single tuple
+	* 	Returns (minimum value, maximum value) based on other entries in the reference set and defined limits.
 
 ## Requirements
 
