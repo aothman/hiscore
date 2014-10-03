@@ -59,7 +59,7 @@ class HiScoreEngine:
     for ((p,v),plusv,minusv) in zip(self.points.iteritems(), plus_vals, minus_vals):
       sp,ip = zip(*plusv)
       sm,im = zip(*minusv)
-      self.point_objs.append(self.Point(p,v,sp,sm,ip,im))
+      self.point_objs.append(Point(p,v,sp,sm,ip,im))
 
   def __solve__(self):
     """ Solve the optimization problem associated with each point """
@@ -172,26 +172,25 @@ class HiScoreEngine:
       if v < mintest:
         raise MonotoneBoundsError(x*self.scale,v,self.minval,"minimum")
 
-  class Point:
-    """ Point objects represent a reference set point and a cone """
-    def __init__(self, where, value, sup_plus, sup_minus, inf_plus, inf_minus):
-      self.where = np.array(where)
-      self.value = value
-      self.sup_plus = np.array(sup_plus)
-      self.sup_minus = np.array(sup_minus)
-      self.inf_plus = np.array(inf_plus)
-      self.inf_minus = np.array(inf_minus)
+  def value_bounds(self, point):
+    """
+    Returns the upper and lower bounds of a point implied by the reference set and the monotone relationship vector.
+    Use it to improve and understand the reference set without triggering a MonotoneError.
 
-    def find_sup(self, other):
-      diff = other-self.where
-      sup_sum = diff*(diff > 0)*self.sup_plus + diff*(diff < 0)*self.sup_minus
-      return self.value + np.sum(sup_sum)
-
-    def find_inf(self, other):
-      diff = other-self.where
-      inf_sum = diff*(diff > 0)*self.inf_plus + diff*(diff < 0)*self.inf_minus
-      return self.value + np.sum(inf_sum)
-
+    Required argument:
+    point -- Point at which to assess upper and lower bounds.
+    """
+    padj = point/self.scale
+    points_greater_than = filter(lambda x: np.allclose(x,padj) or self.__monotone_rel__(x,padj)==1, self.points.keys())
+    points_less_than = filter(lambda x: np.allclose(x,padj) or self.__monotone_rel__(padj,x)==1, self.points.keys())
+    gtbound = 1e47 if self.maxval is None and points_greater_than else self.maxval
+    ltbound = -1e47 if self.minval is None and points_less_than else self.minval
+    for p in points_greater_than:
+      gtbound = min(self.points[p],gtbound)
+    for p in points_less_than:
+      ltbound = max(self.points[p],ltbound)
+    return ltbound, gtbound
+  
   def calculate(self,xs):
     """
     Calculate the scoring function at an iterable of points.
@@ -216,21 +215,24 @@ class HiScoreEngine:
       retval.append((supval+infval)/2.0)
     return retval
 
-  def value_bounds(self, point):
-    """
-    Returns the upper and lower bounds of a point implied by the reference set and the monotone relationship vector.
-    Use it to improve and understand the reference set without triggering a MonotoneError.
+class Point:
+    """ Point objects are used internally to represent a reference set point and a cone """
+    def __init__(self, where, value, sup_plus, sup_minus, inf_plus, inf_minus):
+      self.where = np.array(where)
+      self.value = value
+      self.sup_plus = np.array(sup_plus)
+      self.sup_minus = np.array(sup_minus)
+      self.inf_plus = np.array(inf_plus)
+      self.inf_minus = np.array(inf_minus)
 
-    Required argument:
-    point -- Point at which to assess upper and lower bounds.
-    """
-    padj = point/self.scale
-    points_greater_than = filter(lambda x: x==point or self.__monotone_rel__(x,padj)==1, self.points.keys())
-    points_less_than = filter(lambda x: x==point or self.__monotone_rel__(padj,x)==1, self.points.keys())
-    gtbound = 1e47 if self.maxval is None and points_greater_than else self.maxval
-    ltbound = -1e47 if self.minval is None and points_less_than else self.minval
-    for p in points_greater_than:
-      gtbound = min(self.points[p],gtbound)
-    for p in points_less_than:
-      ltbound = max(self.points[p],ltbound)
-    return ltbound, gtbound
+    def find_sup(self, other):
+      """ Largest possible value other can have based on the emanating cone from this point """
+      diff = other-self.where
+      sup_sum = diff*(diff > 0)*self.sup_plus + diff*(diff < 0)*self.sup_minus
+      return self.value + np.sum(sup_sum)
+
+    def find_inf(self, other):
+      """ Smallest possible value other can have based on the emanating cone from this point """
+      diff = other-self.where
+      inf_sum = diff*(diff > 0)*self.inf_plus + diff*(diff < 0)*self.inf_minus
+      return self.value + np.sum(inf_sum)

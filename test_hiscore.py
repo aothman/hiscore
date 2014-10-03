@@ -49,9 +49,14 @@ class EngineTestCase(unittest.TestCase):
 		self.assertEqual(myfunc.calculate([(2,2,2)])[0],100.0)
 
 	def test_value_bounds(self):
-		mydict = {(1,1,1): 50, (0,0,0): 20}
+		mydict = {(10,10,1): 50, (0,0,0): 20}
 		myfunc = create(mydict,[1,1,1],maxval=100,minval=0.0)
-		self.assertEqual(myfunc.value_bounds((0.5,0.5,0.5)),(20,50))
+		self.assertEqual(myfunc.value_bounds((5,5,0.5)),(20,50))
+		self.assertEqual(myfunc.value_bounds((10,10,1)),(50,50))
+		self.assertEqual(myfunc.value_bounds((20,20,2)),(50,100))
+		self.assertEqual(myfunc.value_bounds((0,0,1)),(20,50))
+		self.assertEqual(myfunc.value_bounds((0,0,0)),(20,20))
+		self.assertEqual(myfunc.value_bounds((-1,0,0)),(0,20))
 
 	def test_value_bounds_min_max(self):
 		mydict = {(100,100,100): 50, (0,200,0): 50}

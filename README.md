@@ -1,9 +1,9 @@
 # HiScore
 
-A *scoring function* maps between objects (tuples of numerical attributes) and scores (a single numerical value). Scoring functions can rank objects too; just order by score. **HiScore** is a python library for making scoring functions through *reference sets*. A reference set is a set of objects that are assigned scores. By updating and changing the reference set, domain experts can easily create sophisticated scores.
+A *scoring function* maps between objects (tuples of numerical attributes) and scores (a single numerical value). Scoring functions can rank objects too; just order by score. **HiScore** is a python library for making scoring functions through *reference sets*: a set of objects that are assigned scores. By updating and changing the reference set, domain experts can easily create and maintain sophisticated scores.
 
 ## Attributes
-**HiScore** requires that attributes involved in a score must be **monotone**. This means that a score must always be non-decreasing or non-increasing if the value in each dimension moves in isolation. This is typically a natural restriction as the attributes of an object usually measure something that is either good or bad.
+**HiScore** requires that **attributes involved in a score must be monotone**. This means that a score must always be non-decreasing or non-increasing if the value in each dimension moves in isolation. This is typically a natural restriction as the attributes of an object usually measure something that is either good or bad.
 
 ## Example Use
 Consider a network security company that assess threats on two axes:
@@ -57,10 +57,11 @@ np.round(score_function.calculate([(7,7),(8,7),(9,7),(10,7)]))
 # Returns [49., 59., 70., 78.]
 ```
 
-And here's a three-dimensional figure of the resulting scoring function:
+Here's a three-dimensional figure of the resulting scoring function:
 
 ![Demonstration Score Function](http://www.cs.cmu.edu/~aothman/score_function_demo.png)
 
+Observe that it is monotone increasing along both axes and piecewise linear, but also how it picks up on shape features from the reference set.
 
 ## Why HiScore?
 
@@ -96,7 +97,13 @@ In contrast, **HiScore** allows domain experts to fix observed errors quickly: j
 	* 	object: A single tuple
 	* 	Returns (minimum value, maximum value) based on other entries in the reference set and defined limits.
 
-## Requirements
+## Installation and Requirements
+
+To install **HiScore**, just run
+
+```bash
+$ pip install hiscore
+```
 
 In addition to `numpy`, **HiScore** requires the python libraries of the [Gurobi optimizer](http://www.gurobi.com) in order to `hiscore.create` scoring functions. Once the scoring function is created, further calls (e.g., to `calculate`) do not require use of the Gurobi libraries.
 
@@ -105,7 +112,7 @@ While Gurobi is not free software, it offers several attractive licensing option
 ## Credits
 The reference set approach to scoring was developed while I was Scientist-in-Residence at the [US Green Building Council (USGBC)](http://www.usgbc.org/), where it forms the core of the new LEED Performance Score.
 
-Development of the theoretical approach of **HiScore** is credited to collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd). The algorithm itself is a practical extension of the quasi-Kriging technique proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x).
+Development of the theoretical approach of **HiScore** is credited to collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd). The algorithm itself is an extension of the quasi-Kriging technique proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x).
 
 ## Contact and Support
 If you're using or interested in using **HiScore** to develop scores for a specific domain I'd love to hear from you. Please contact me directly at <aothman@cs.cmu.edu>.
