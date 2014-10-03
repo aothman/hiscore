@@ -99,6 +99,8 @@ class HiScoreEngine:
         lhs_inf = grb.LinExpr()
         for (di,(poned,ptwod)) in enumerate(zip(pone,ptwo)):
           run = ptwod - poned
+          supvar = 0.0
+          infvar = 0.0
           if ptwod > poned:
             supvar = sup_plus_vars[i][di]
             infvar = inf_plus_vars[i][di]
