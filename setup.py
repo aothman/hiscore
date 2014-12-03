@@ -14,13 +14,11 @@ setup(
   author = __maintainer__,
   author_email = __email__,
   packages = find_packages(),
-  description = 'A simple and powerful scoring/ranking engine',
+  description = 'A simple and powerful engine for creating scores',
   long_description=long_description,
   install_requires=install_requires,
   url = 'https://github.com/aothman/hiscore', # use the URL to the github repo
+  download_url = "https://github.com/aothman/hiscore/tarball/"+__version__,
   keywords = [],
-  classifiers =[
-    'Operating System :: OS Independent',
-    'License :: OSI Approved :: GNU General Public License (GPL)'
-  ],
+  classifiers =[],
 )
