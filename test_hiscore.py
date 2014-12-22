@@ -5,6 +5,8 @@ import hiscore
 import pytest
 from hiscore.engine import create
 from hiscore.errors import MonotoneError, MonotoneBoundsError, ScoreCreationError
+import pickle
+
 
 class EngineTestCase(unittest.TestCase):
 	def test_bad_monotone_vector(self):
@@ -44,7 +46,7 @@ class EngineTestCase(unittest.TestCase):
 	
 	def test_min_and_max(self):
 		mydict = {(1,1,1): 100, (0,0,0): 0}
-		myfunc = create(mydict,[1,1,1],maxval=100,minval=0.0)
+		myfunc = create(mydict,(1,1,1),maxval=100,minval=0.0)
 		self.assertEqual(myfunc.calculate([(-1,-1,-1)])[0],0.0)
 		self.assertEqual(myfunc.calculate([(2,2,2)])[0],100.0)
 
@@ -64,3 +66,8 @@ class EngineTestCase(unittest.TestCase):
 		self.assertEqual(myfunc.value_bounds((50,50,50)),(0,50))
 		myfunc = create(mydict,[-1,-1,-1],maxval=100,minval=0.0)
 		self.assertEqual(myfunc.value_bounds((50,50,50)),(50,100))
+
+	def test_pickling(self):
+		mydict = {(0,0): 0, (100,100): 100}
+		myfunc = create(mydict,[1,1])
+		self.assertEqual(myfunc.calculate([5,10]),pickle.loads(pickle.dumps(myfunc)).calculate([5,10]))
