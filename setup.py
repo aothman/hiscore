@@ -18,7 +18,11 @@ setup(
   long_description=long_description,
   install_requires=install_requires,
   url = 'https://github.com/aothman/hiscore', # use the URL to the github repo
-  download_url = "https://github.com/aothman/hiscore/tarball/"+__version__,
   keywords = [],
-  classifiers =[],
+  classifiers =[
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU Affero General Public License v3',
+    'Programming Language :: Python :: 2'
+  ]
 )
