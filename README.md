@@ -89,15 +89,15 @@ You can also use **HiScore** to make multi-levels scores by creating sub-scores 
 Consider a simplified version of the [World Health Organization safety score for water wells](http://www.ncbi.nlm.nih.gov/pubmed/22717748), which depends on two sub-scores:
 
 *	Site Location
-		* Distance to nearest latrine in meters
-		* Distance to other nearest pollutant in meters
+	*	Distance to nearest latrine in meters
+	*	Distance to other nearest pollutant in meters
 *	Platform
-		* Size in square feet
-		* Is it damaged, cracked, or eroding away?
+	*	Size in square feet
+	*	Is it damaged, cracked, or eroding away?
 
 Graphically, our water well function has the following tree shape:
 
-![Demonstration Scoring Tree](http://www.cs.cmu.edu/~aothman/tree_score_demo.png =500x)
+![Demonstration Scoring Tree](http://www.cs.cmu.edu/~aothman/tree_score_demo.png)
 
 We can use **HiScore** by first making scoring functions for the two-subscores:
 
