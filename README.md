@@ -1,28 +1,28 @@
 # HiScore
 
-A *scoring function* maps between objects (tuples of numerical attributes) and scores (a single numerical value). Scoring functions can rank objects too; just order by score. **HiScore** is a python library for making scoring functions through *reference sets*: a set of objects that are assigned scores. By updating and changing the reference set, domain experts can easily create and maintain sophisticated scores.
+**HiScore** is a python library for making *scoring functions*---functions that map between objects (tuples of numerical attributes) and scores (a single numerical value)---through *reference sets*: a set of objects that are assigned scores. Domain experts can easily create and maintain sophisticated scores by modifying reference sets. Scoring functions can be used rank objects too; just order by score. 
 
 
 ## Why HiScore?
 
 **HiScore** is designed with three qualities in mind:
-+ Ease-of-Use. While **HiScore** can produce mathematically sophisticated scores with complex non-linear relationships between attributes, the code takes care of all this math internally. It requires only domain expertise, *not* mathematical expertise.
++ Ease-of-Use. **HiScore** can produce mathematically sophisticated scores with complex non-linear relationships between attributes, but the code takes care of all this math internally. It requires only domain expertise, *not* mathematical expertise.
 + Performance. **HiScore** can quickly produce meaningful scores over very large domains with dozens or even hundreds of attributes.
-+ Maintainability. **HiScore** is designed to make scoring functions that get better over time.
++ Continuous Improvement. **HiScore** is designed to make scoring functions that get better over time.
 
 The traditional approach to scoring looks like this:
 
 1.  A mathematically adept domain expert comes up with a set of descriptive scoring functions. (For instance, a radial function scoring a location's distance to the nearest grocery store, or an exponential  dropoff function scoring time since a credit card applicant's last credit default.)
 2. The domain expert determines how to combine those functions.
 3. The domain expert checks the resulting score function against a reference set of objects to see if the score of those objects "looks right".
-4. The above steps are repeated until the expert is satisfied.
+4. The above steps are repeated until the domain expert is satisfied.
 
 While this approach can be quick and intuitive, it ossifies quickly; eventually experts stop modifying the score even when they see mis-scored points because fiddling with basis functions and their coefficients introduces more errors than it fixes.
 
-In contrast, **HiScore** allows domain experts to fix observed errors quickly: just add the erroneous point (with its correct score) to the reference set, and re-run the scoring engine.
+In contrast, **HiScore** allows domain experts to start with their intuition about how a score should behave, and then fix any observed errors quickly: just add the erroneous point (with its correct score) to the reference set, and re-run the scoring engine.
 
 ## Attributes
-**HiScore** requires that **attributes involved in a score must be monotone**. This means that a score must always be non-decreasing or non-increasing if the value in each dimension moves in isolation. This is typically a natural restriction as the attributes of an object usually measure something that is either good or bad.
+**HiScore** requires that the **attributes involved in a score must be monotone**. This means that a score must always be non-decreasing or non-increasing if the value in each dimension moves in isolation. This is typically a natural restriction as the attributes of an object usually measure something that is either good or bad.
 
 ## Simple Example Use
 Consider a network security company that assess threats on two axes:
@@ -84,7 +84,7 @@ Observe that it is monotone increasing along both axes and piecewise linear, but
 
 ## More Complex Example
 
-You can also use **HiScore** to make multi-levels scores by creating sub-scores that pass their inputs up a tree. This enables the easy creation of reference sets for scores with dozens of attributes.
+To quickly create a well-tempered score, it is suggested to include objects with low, middle, and high values for each attribute in the reference set. Since this requires scoring an exponential number of objects, you can use **HiScore** to create multi-level subscores that propopagate up a tree. This enables the easy creation of reference sets for scores with dozens of attributes.
 
 Consider a simplified version of the [World Health Organization safety score for water wells](http://www.ncbi.nlm.nih.gov/pubmed/22717748), which depends on two sub-scores:
 
@@ -95,7 +95,7 @@ Consider a simplified version of the [World Health Organization safety score for
 	*	Size in square feet
 	*	Is it damaged, cracked, or eroding away?
 
-Graphically, our water well function has the following tree shape:
+Graphically, our water well scoring function has the following tree shape:
 
 ![Demonstration Scoring Tree](http://www.cs.cmu.edu/~aothman/tree_score_demo.png)
 
@@ -116,7 +116,7 @@ well_reference_set = {(0,0): 0, (100,100): 100, (100,0): 80, (0,100): 20, (50,50
 well_score = hiscore.create(well_reference_set, [1,1], minval=0, maxval=100)
 ```
 
-Now we can calculate a full example score:
+Now we can calculate a full example score. For instance:
 ```python
 latrine_distance = 17.2
 other_pollutant_distance = 31.1
