@@ -84,7 +84,7 @@ Observe that it is monotone increasing along both axes and piecewise linear, but
 
 ## More Complex Example
 
-To quickly create a well-tempered score, it is suggested to include objects with low, middle, and high values for each attribute in the reference set. Since this requires scoring an exponential number of objects, you can use **HiScore** to create multi-level subscores that propopagate up a tree. This enables the easy creation of reference sets for scores with dozens of attributes.
+To quickly create a well-tempered score, it is suggested to include objects with low, middle, and high values for each attribute in the reference set. Since this requires scoring an exponential number of objects, you can use **HiScore** to create multi-level subscores that percolate up a tree. This enables the easy creation of reference sets for scores with dozens of attributes.
 
 Consider a simplified version of the [World Health Organization safety score for water wells](http://www.ncbi.nlm.nih.gov/pubmed/22717748), which depends on two sub-scores:
 
