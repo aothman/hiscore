@@ -1,7 +1,6 @@
 # HiScore
 
-**HiScore** is a python library for making *scoring functions*---functions that map between objects (tuples of numerical attributes) and scores (a single numerical value)---through *reference sets*: a set of objects that are assigned scores. Domain experts can easily create and maintain sophisticated scores by modifying reference sets. Scoring functions can be used rank objects too; just order by score. 
-
+**HiScore** is a python library for making *scoring functions*. Scoring functions map between objects (tuples of numerical attributes) and scores (a single numerical value). Using **HiScore**, domain experts can easily create and maintain sophisticated scores by modifying *reference sets*: a set of representative objects that are assigned scores.
 
 ## Why HiScore?
 
