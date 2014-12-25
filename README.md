@@ -81,7 +81,7 @@ score_function.calculate([(15,36)])
 
 Here's a three-dimensional figure of the scoring function:
 
-![Demonstration Score Function](http://www.cs.cmu.edu/~aothman/score_function_demo.png)
+![Demonstration Score Function](http://www.cs.cmu.edu/~aothman/score_function_demo_new.png)
 
 Observe that it is monotone increasing along both axes and piecewise linear, but also how it picks up on shape features from the reference set, increasing more steeply with Distance as opposed to Size.
 
