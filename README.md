@@ -1,91 +1,95 @@
 # HiScore
 
-**HiScore** is a python library for making *scoring functions*. Scoring functions map between objects (tuples of numerical attributes) and scores (a single numerical value). Using **HiScore**, domain experts can easily create and maintain sophisticated scores by modifying *reference sets*: a set of representative objects that are assigned scores.
+**HiScore** is a python library for making *scoring functions*. Scoring functions map  objects (vectors of numerical attributes) to scores (a single numerical value). 
 
-## Why HiScore?
+Scores are a way for domain experts to communicate the quality of a complex object to a broader audience. Scores are ubiquitous; everything from [NFL Quarterbacks](http://en.wikipedia.org/wiki/Passer_rating) to the [walkability of neighborhoods](https://www.walkscore.com/) has a score.
 
-**HiScore** is designed with three qualities in mind:
-+ Ease-of-Use. **HiScore** can produce mathematically sophisticated scores with complex non-linear relationships between attributes, but the code takes care of all this math internally. It requires only domain expertise, *not* mathematical expertise.
-+ Performance. **HiScore** can quickly produce meaningful scores over very large domains with dozens or even hundreds of attributes.
-+ Continuous Improvement. **HiScore** is designed to make scoring functions that get better over time.
+**HiScore** provides a new way for domain experts to quickly create and improve intuitive scoring functions: by using *reference sets*, a set of representative objects that are assigned scores.
 
-The traditional approach to scoring looks like this:
+## Demonstration
 
-1.  A mathematically adept domain expert comes up with a set of descriptive scoring functions. (For instance, a radial function scoring a location's distance to the nearest grocery store, or an exponential  dropoff function scoring time since a credit card applicant's last credit default.)
-2. The domain expert determines how to combine those functions.
-3. The domain expert checks the resulting score function against a reference set of objects to see if the score of those objects "looks right".
-4. The above steps are repeated until the domain expert is satisfied.
+We'll use a highly simplified version the [World Health Organization safety score for water wells](http://www.ncbi.nlm.nih.gov/pubmed/22717748) to show how to use **HiScore**.
 
-While this approach can be quick and intuitive, it ossifies quickly; eventually experts stop modifying the score even when they see mis-scored points because fiddling with basis functions and their coefficients introduces more errors than it fixes.
+### Setup and Reference Set Creation
 
-In contrast, **HiScore** allows domain experts to start with their intuition about how a score should behave, and then fix any observed errors quickly: just add the erroneous point (with its correct score) to the reference set, and re-run the scoring engine.
+Let's start with a water well score based on only two attributes:
 
-## Attributes
-**HiScore** requires that the **attributes involved in a score must be monotone**. This means that a score must always be non-decreasing or non-increasing if the value in each dimension moves in isolation. This is typically a natural restriction as the attributes of an object usually measure something that is either good or bad.
+1. The distance from the nearest latrine, in meters. ("Distance")
+2. The size of the water well platform, in square feet. ("Size")
 
-## Simple Example Use
-Consider a network security company that assess threats on two axes:
+Observe that score should be *increasing* in both of these attributes (e.g., for wells of a fixed size, the score does not decrease as the well moves farther from the nearest latrine). **HiScore requires scores to be monotone increasing or decreasing in each attribute**. (This is typically not restrictive, as attributes are generally either good or bad.) 
 
-1. The certainty that the threat is real ("Certainty"),
-2. The potential risk from the threat. ("Risk")
+To quickly create an intelligent score, **label all combinations of high, middle, and low values of each attribute**. Doing this for our simplified water well score could yield the following reference set:
 
-that wants to develop a scoring function from 0 to 100 that is increasing in certainty and risk.
-
-Assuming that both the certainty and risk attributes are in [0,10], using their domain expertise the company develops the following reference set that maps objects to the scores they think are appropriate:
-
-	Certainty | Risk | Score
+	Distance | Size | Score
 	--------- | ---- | -----
-	0  | 0  | 0
-	10 | 10 | 100
-	5  | 5  | 20
-	10 | 8  | 90
-	8  | 10 | 80
-	3  | 10 | 20
-	10 | 2  | 15
+	0  | 1  | 0
+	0 | 25 | 5
+	0  | 100  | 10
+	10 | 1  | 20
+	10  | 25 | 50
+	10 | 100 | 60
+	50 | 1  | 65
+	50  | 25 | 90
+	50 | 100 | 100
 
-You can generate a scoring function by calling `hiscore.create` with this reference set:
+
+### Creating, Improving, and Querying the Scoring Function
+
+We can generate a scoring function by calling `hiscore.create` with this reference set:
 
 ```python	
 import hiscore
-reference_set = {(0,0): 0, (10,10): 100, (5,5): 20, (10,8): 90, (8,10): 80, (3,10): 20, (10,2): 15}
-score_function = hiscore.create(reference_set, (1,1), minval=0, maxval=100)
+# The objects in the reference set must be tuples, or else they cannot be hashed into a dict
+reference_set = {(0,1): 0, (0,25): 5, (0,100): 10, (10,1): 20, (10,25): 50, (10,100): 60, (50,1): 65, (50,25): 90, (50,100): 100}
+# [1,1] -> increasing in both attributes
+score_function = hiscore.create(reference_set, [1,1], minval=0, maxval=100)
 ```
 
-The resulting function interpolates exactly through the reference set:
+The resulting scoring function interpolates exactly through the reference set:
 
 ```python	
 zip(reference_set.keys(), score_function.calculate(reference_set.keys()))
-# Returns [((10, 8), 90.0), ((0, 0), 0.0), ((5, 5), 20.0), ((10, 10), 100.0), ((3, 10), 20.0), ((8, 10), 80.0), ((10, 2), 15.0)]
+# Returns [((0, 1), 0.0), ((10, 100), 60.0), ((10, 1), 20.0), ((0, 100), 10.0), ((0, 25), 5.0), ((50, 25), 90.0), ((50, 1), 65.0), ((50, 100), 100.0), ((10, 25), 50.0)]
 ```
 
 While producing reasonable estimates for points that are not in the reference set
 
 ```python
 import numpy as np
-np.round(score_function.calculate([(9,9)]))
-# Returns [84.]
+np.round(score_function.calculate([(15,36)]))
+# Returns [56.]
 ```
 
-And also obeying monotonicity, so that increasing certainty or risk increases the score
+And also obeying monotonicity, so that increasing distance or size increases the score
 
 ```python
-np.round(score_function.calculate([(7,7),(7,8),(7,9),(7,10)]))
-# Returns [49., 58., 62., 68.]
-np.round(score_function.calculate([(7,7),(8,7),(9,7),(10,7)]))
-# Returns [49., 59., 70., 78.]
+np.round(score_function.calculate([(10,5),(10,10),(10,20),(10,35)]))
+# Returns [ 25.,  31.,  44.,  51.]
+np.round(score_function.calculate([(5,10),(10,10),(20,10),(50,10)]))
+# Returns [ 15.,  31.,  42.,  74.]
 ```
 
-Here's a three-dimensional figure of the resulting scoring function:
+One of the strengths of **HiScore** is that it is simple to fix mis-scored points. Say, for instance, we were unhappy with a well with distance 15 and size 36 scoring a 56. Say we think it should score a 60 instead. We can just add it to the reference set and re-create the scoring function.
+
+```python
+reference_set[(15,36)] = 60
+score_function = hiscore.create(reference_set, [1,1], minval=0, maxval=100)
+score_function.calculate([(15,36)])
+# Returns [60.]
+```
+
+Here's a three-dimensional figure of the scoring function:
 
 ![Demonstration Score Function](http://www.cs.cmu.edu/~aothman/score_function_demo.png)
 
-Observe that it is monotone increasing along both axes and piecewise linear, but also how it picks up on shape features from the reference set, increasing more steeply as certainty and risk both increase.
+Observe that it is monotone increasing along both axes and piecewise linear, but also how it picks up on shape features from the reference set, increasing more steeply with Distance as opposed to Size.
 
-## More Complex Example
+### A More Complex Score
 
-To quickly create a well-tempered score, it is suggested to include objects with low, middle, and high values for each attribute in the reference set. Since this requires scoring an exponential number of objects, you can use **HiScore** to create multi-level subscores that percolate up a tree. This enables the easy creation of reference sets for scores with dozens of attributes.
+Scoring all low, middle, and high attribute combinations can result in having to score an exponential number of objects in a reference set as the number of attributes increases. Instead, you can use **HiScore** to create multi-level trees with sub-scores that percolate their values upwards. This enables the easy creation and control of scores with dozens of attributes.
 
-Consider a simplified version of the [World Health Organization safety score for water wells](http://www.ncbi.nlm.nih.gov/pubmed/22717748), which depends on two sub-scores:
+To be concrete, let's extend our safety score for water wells to depend on two sub-scores:
 
 *	Site Location
 	*	Distance to nearest latrine in meters
@@ -94,60 +98,63 @@ Consider a simplified version of the [World Health Organization safety score for
 	*	Size in square feet
 	*	Is it damaged, cracked, or eroding away?
 
-Graphically, our water well scoring function has the following tree shape:
+Graphically, our water well scoring function will have the following tree shape:
 
 ![Demonstration Scoring Tree](http://www.cs.cmu.edu/~aothman/tree_score_demo.png)
 
-We can use **HiScore** by first making scoring functions for the two-subscores:
+We can use **HiScore** by first making scoring functions for the two-subscores, again using the low-middle-high system:
 
-```python	
-location_reference_set = {(0,100): 0, (100,0): 0, (10,10): 50, (10,100): 60, (100, 10): 70, (20,20): 60, (50,50): 85, (100,100): 100}
+```python
+# Location attributes: distance to latrine (higher=better), distance to other pollutant (higher=better)	
+location_reference_set = {(0,0): 0, (10,0): 5, (50,0): 10, (0,25): 0, (10,25): 50, (50,25): 75, (0,100): 5, (10,100): 70, (50,100): 100}
 location_subscore = hiscore.create(location_reference_set, [1,1], minval=0, maxval=100)
 
-platform_reference_set = {(0,1): 0, (0,0): 0, (25,1): 15, (25,0): 80, (50,0): 100, (50,1): 20, (15,1): 5, (20,0): 15}
+# Platform attributes: size in SF (higher=better), damaged (1=true=damaged=bad, 0=false=undamaged=good)
+platform_reference_set = {(1,1): 0, (1,0): 20, (25,1): 5, (25,0): 60, (100,0): 100, (100,1): 30}
 platform_subscore = hiscore.create(platform_reference_set, [1,-1], minval=0, maxval=100)
 ```
 (Note how the binary attribute of whether the platform is damaged is handled)
 
 We can then produce a final score by combining these two scores. The following score more heavily weights the location subscore:
-```python	
+```python
+# Well attributes: location subscore (higher=better), platform subscore (higher=better)
 well_reference_set = {(0,0): 0, (100,100): 100, (100,0): 80, (0,100): 20, (50,50): 50, (100,50): 95, (50,100): 65, (0,50): 15, (50,0): 35} 
 well_score = hiscore.create(well_reference_set, [1,1], minval=0, maxval=100)
 ```
 
 Now we can calculate a full example score. For instance:
 ```python
-latrine_distance = 17.2
-other_pollutant_distance = 31.1
+latrine_distance = 28.6
+other_pollutant_distance = 39.0
 loc_score = location_subscore.calculate([(latrine_distance, other_pollutant_distance)])
-# loc_score => [55.58]
+# loc_score => [59.95]
 platform_size = 40.2
 is_damaged = True
 plat_score = platform_subscore.calculate([(platform_size,int(is_damaged))])
-# plat_score => [18.04]
-total = well_score.calculate([loc_score+plat_score])
-# total => [48.14]
+# plat_score => [10.97]
+total = np.round(well_score.calculate([loc_score+plat_score]))
+# total => [47.]
 ```
 
 ## API
 
-Start by creating a `HiScoreEngine` object:
+Start by creating a `HiScoreEngine`:
 
 *	create(reference_set_dict, monotone_relationship, minval=None, maxval=None)
-	*	reference_set_dict: The reference set, keys are objects (tuples) and values are scores.
+	*	reference_set_dict: The reference set, keys are objects (e.g., a list of attributes) and values are scores.
 	*	monotone_relationship: An iterable with entries that are +/- 1. +1 means the score function should be increasing along that attribute, -1 means the score function should be decreasing.
 	*	minval, maxval: Floats, the minimum and maximum values for the function.
-	*	Returns a HiScoreEngine object that can be queried for function values.
+	*	*Returns a HiScoreEngine object that can be queried for function values.*
 
 On that returned object, you can call:
 
 *	calculate(xs)
-	*	xs: An iterable of tuples
-	*	Returns score function evaluations at each of the tuples
+	*	xs: An iterable of objects.
+	*	*Returns score function evaluations at each of the tuples.*
 
 *	value_bounds(object)
-	* 	object: A single tuple
-	* 	Returns (minimum value, maximum value) based on other entries in the reference set and the initialized minimum and maximum values, if defined.
+	* 	object: A single object.
+	* 	*Returns a two-element tuple (minimum value, maximum value) based on other entries in the reference set and the initialized minimum and maximum values, if defined.*
 
 ## Installation and Requirements
 
@@ -161,8 +168,10 @@ In addition to `numpy`, **HiScore** requires the python libraries of the [Gurobi
 
 While Gurobi is not free software, it offers several attractive licensing options, including free academic licensing, a free evaluation license, and full AWS integration.
 
-## Credits
-Development of the theoretical approach of **HiScore** is credited to a collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd). The algorithm itself is an extension of the quasi-Kriging technique proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x).
+## Credits and References
+Development of the theoretical approach of **HiScore** is credited to a collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd).
+
+The algorithm itself is an extension of the quasi-Kriging technique proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x). I explored a different algorithm for reference-set-based scoring in a [2014 AAAI paper](http://www.cs.cmu.edu/~aothman/splines.pdf).
 
 ## Contact and Support
 If you're using or interested in using **HiScore** to develop scores for a specific domain I'd love to hear from you. Please contact me directly at <aothman@cs.cmu.edu>.
