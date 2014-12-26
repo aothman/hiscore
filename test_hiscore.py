@@ -67,6 +67,14 @@ class EngineTestCase(unittest.TestCase):
 		myfunc = create(mydict,[-1,-1,-1],maxval=100,minval=0.0)
 		self.assertEqual(myfunc.value_bounds((50,50,50)),(50,100))
 
+	def test_value_bounds_inf(self):
+		mydict = {(100,100,100): 50, (0,200,0): 50}
+		myfunc = create(mydict,[1,1,1])
+		self.assertEqual(myfunc.value_bounds((50,50,50)),(np.NINF,50))
+		myfunc = create(mydict,[-1,-1,-1])
+		self.assertEqual(myfunc.value_bounds((50,50,50)),(50,np.inf))
+		self.assertEqual(myfunc.value_bounds((200,0,50)),(np.NINF,np.inf))
+
 	def test_pickling(self):
 		mydict = {(0,0): 0, (100,100): 100}
 		myfunc = create(mydict,[1,1])

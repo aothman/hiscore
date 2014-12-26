@@ -176,8 +176,9 @@ class HiScoreEngine:
 
   def value_bounds(self, point):
     """
-    Returns the upper and lower bounds of a point implied by the reference set and the monotone relationship vector.
+    Returns the (lower_bound, upper_bound) tuple of a point implied by the reference set and the monotone relationship vector.
     Use it to improve and understand the reference set without triggering a MonotoneError.
+    Returns np.inf as the second argument if there is no upper bound and np.NINF as the first argument if there is no lower bound.
 
     Required argument:
     point -- Point at which to assess upper and lower bounds.
@@ -185,8 +186,8 @@ class HiScoreEngine:
     padj = point/self.scale
     points_greater_than = filter(lambda x: np.allclose(x,padj) or self.__monotone_rel__(x,padj)==1, self.points.keys())
     points_less_than = filter(lambda x: np.allclose(x,padj) or self.__monotone_rel__(padj,x)==1, self.points.keys())
-    gtbound = 1e47 if self.maxval is None and points_greater_than else self.maxval
-    ltbound = -1e47 if self.minval is None and points_less_than else self.minval
+    gtbound = np.inf if self.maxval is None else self.maxval
+    ltbound = np.NINF if self.minval is None else self.minval
     for p in points_greater_than:
       gtbound = min(self.points[p],gtbound)
     for p in points_less_than:
