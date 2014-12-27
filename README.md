@@ -8,7 +8,7 @@ Scores are a way for domain experts to communicate the quality of a complex, mul
 
 ## Demonstration
 
-We'll use a highly simplified version the [World Health Organization safety score for water wells](http://www.ncbi.nlm.nih.gov/pubmed/22717748) to show how to use **HiScore**.
+We'll use a highly simplified version of the [World Health Organization safety score for water wells](http://www.ncbi.nlm.nih.gov/pubmed/22717748) to show how to use **HiScore**.
 
 ### Setup and Reference Set Creation
 
