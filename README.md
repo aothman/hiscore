@@ -19,7 +19,7 @@ Let's start with a water well safety score based on only two attributes:
 
 Observe that score should be *increasing* in both of these attributes (e.g., for wells of a fixed size, the score does not decrease as the well moves farther from the nearest latrine). **HiScore requires scores to always be increasing or decreasing in each attribute**. (This is typically not restrictive, as attributes usually measure something that is either good or bad.) 
 
-To quickly create an intelligent score, you can start by determining, low, middle, and high values for each attribute and then labelling all the combinations of these values. (Of course, you can label other objects as well!) For our water well score, distance could have a low value of 0m, a middle value of 10m, and a high value of 50m, while size could have a low value of 1 sq.ft., a middle value of 25 sq.ft., and a high value of 100 sq.ft. labelling all combinations of these values could yield the following reference set:
+To quickly create an intelligent score, you can start by determining, low, middle, and high values for each attribute and then labeling all the combinations of these values. (Of course, you can label other objects as well!) For our water well score, distance could have a low value of 0m, a middle value of 10m, and a high value of 50m, while size could have a low value of 1 sq.ft., a middle value of 25 sq.ft., and a high value of 100 sq.ft. labeling all combinations of these values could yield the following reference set:
 
 	Distance | Size | Score
 	--------- | ---- | -----
