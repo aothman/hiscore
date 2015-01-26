@@ -8,6 +8,7 @@ Core methods for creating and calculating scoring functions.
 """
 import numpy as np
 from errors import MonotoneError, MonotoneBoundsError, ScoreCreationError
+import cvxpy as cvx
 
 def create(reference_set_dict, monotone_relationship, minval=None, maxval=None):
   """
@@ -63,80 +64,54 @@ class HiScoreEngine:
 
   def __solve__(self):
     """ Solve the optimization problem associated with each point """
-    import gurobipy as grb
-    
-    # Set tolerances low
-    model = grb.Model()
-    model.setParam('OutputFlag',0)
-    model.setParam('OptimalityTol',1e-6)
-    model.setParam('IntFeasTol',1e-8)
-    model.setParam('MIPGap',1e-8)
-    model.setParam('MIPGapAbs',1e-8)
-    model.update()
     
     # Cones on the plus and minus side
-    lbs = [0 for p in self.monorel]
-    ubs = [grb.GRB.INFINITY for p in self.monorel]
-    sup_plus_vars = [[model.addVar(lb,ub) for (lb,ub) in zip(lbs,ubs)] for i in self.points]
-    inf_plus_vars = [[model.addVar(lb,ub) for (lb,ub) in zip(lbs,ubs)] for i in self.points]
-    sup_minus_vars = [[model.addVar(lb,ub) for (lb,ub) in zip(lbs,ubs)] for i in self.points]
-    inf_minus_vars = [[model.addVar(lb,ub) for (lb,ub) in zip(lbs,ubs)] for i in self.points]
-    model.update()
+    sup_plus_vars = cvx.Variable(len(self.points), self.dim)
+    inf_plus_vars = cvx.Variable(len(self.points), self.dim)
+    sup_minus_vars = cvx.Variable(len(self.points), self.dim)
+    inf_minus_vars = cvx.Variable(len(self.points), self.dim)
+    constraints = [sup_plus_vars >= 0, inf_plus_vars >= 0, sup_minus_vars >= 0, sup_plus_vars >= 0]
 
     # inf/sup relational constraints
-    for (supv,infv) in zip(sup_plus_vars,inf_plus_vars):
-      for (s,i) in zip(supv,infv):
-        model.addConstr(s, grb.GRB.GREATER_EQUAL, i)
-    for (supv,infv) in zip(sup_minus_vars,inf_minus_vars):
-      for (s,i) in zip(supv,infv):
-        model.addConstr(s, grb.GRB.LESS_EQUAL, i)
+    constraints += [sup_plus_vars >= inf_plus_vars]
+    constraints += [sup_minus_vars <= inf_minus_vars]
 
     # Cone constraints
     for (i,(pone,vone)) in enumerate(self.points.iteritems()):
+      # point i has to be able to project into point j
       for (j,(ptwo,vtwo)) in enumerate(self.points.iteritems()):
         if i==j: continue
-        lhs_sup = grb.LinExpr()
-        lhs_inf = grb.LinExpr()
+        lhs_sup = 0.0
+        lhs_inf = 0.0
         for (di,(poned,ptwod)) in enumerate(zip(pone,ptwo)):
           run = ptwod - poned
           supvar = 0.0
           infvar = 0.0
           if ptwod > poned:
-            supvar = sup_plus_vars[i][di]
-            infvar = inf_plus_vars[i][di]
+            supvar = sup_plus_vars[i,di]
+            infvar = inf_plus_vars[i,di]
           elif ptwod < poned:
-            supvar = sup_minus_vars[i][di]
-            infvar = inf_minus_vars[i][di]
+            supvar = sup_minus_vars[i,di]
+            infvar = inf_minus_vars[i,di]
           lhs_sup += run*supvar
           lhs_inf += run*infvar
-        model.addConstr(lhs_sup, grb.GRB.GREATER_EQUAL, vtwo-vone)
-        model.addConstr(lhs_inf, grb.GRB.LESS_EQUAL, vtwo-vone)
+        constraints += [lhs_sup >= vtwo-vone, lhs_inf <= vtwo-vone]
 
-    model.update()
-    
     # Optimization : minimize cone width
-    opt = grb.QuadExpr()
-    for (supvdim,infvdim) in zip(sup_plus_vars,inf_plus_vars):
-      for (supv,infv) in zip(supvdim,infvdim):
-        opt += (supv - infv)*(supv-infv)
-    for (supvdim,infvdim) in zip(sup_minus_vars,inf_minus_vars):
-      for (supv,infv) in zip(supvdim,infvdim):
-        opt += (infv-supv)*(infv-supv)
-    model.setObjective(opt, grb.GRB.MINIMIZE)
-    model.update()
-
+    objective = cvx.Minimize(cvx.sum_squares(sup_plus_vars-inf_plus_vars)+cvx.sum_squares(inf_minus_vars-sup_minus_vars))
+    p = cvx.Problem(objective, constraints)
     # Run it!
-    model.optimize()
+    try:
+      p.solve(verbose=False)
+    except Exception as e:
+      print e
     # Post-mortem...
-    if model.status != grb.GRB.OPTIMAL:
-      if model.status == grb.GRB.INFEASIBLE or model.status == grb.GRB.INF_OR_UNBD:
-        raise ScoreCreationError("Could not create scoring function: Model Infeasible")
-      else:
-        raise ScoreCreationError("Could not create scoring function: Optimization Failed")
+    if p.status != 'optimal' and p.status != 'optimal_inaccurate':
+      raise ScoreCreationError("Could not create scoring function: Optimization Failed")
       return None
     # Pull out the coefficients from the variables
-    plus_vars = [[(supv.x,infv.x) for (supv,infv) in zip(s,i)] for (s,i) in zip(sup_plus_vars,inf_plus_vars)]
-    minus_vars = [[(supv.x,infv.x) for (supv,infv) in zip(s,i)] for (s,i) in zip(sup_minus_vars,inf_minus_vars)]
+    plus_vars = [[(sup_plus_vars[i,j].value,inf_plus_vars[i,j].value) for j in xrange(self.dim)] for i in xrange(len(self.points))]
+    minus_vars = [[(sup_minus_vars[i,j].value,inf_minus_vars[i,j].value) for j in xrange(self.dim)] for i in xrange(len(self.points))]
     return plus_vars, minus_vars
 
   def __monotone_rel__(self,a,b):
