@@ -5,7 +5,7 @@ long_description = open('README.md').read()
 
 install_requires = [
   'numpy',
-  'gurobipy'
+  'cvxpy'
 ]
 
 setup(

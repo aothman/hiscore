@@ -164,9 +164,7 @@ To install **HiScore**, just run
 $ pip install hiscore
 ```
 
-In addition to `numpy`, **HiScore** requires the python libraries of the [Gurobi optimizer](http://www.gurobi.com) in order to `hiscore.create` scoring functions. Once the scoring function is created, further calls (e.g., to `calculate`) do not require use of the Gurobi libraries.
-
-While Gurobi is not free software, it offers several attractive licensing options, including free academic licensing, a free evaluation license, and full AWS integration.
+In addition to `numpy`, **HiScore** requires [CVXPY](http://www.cvxpy.org/en/latest/).
 
 ## Credits and References
 Development of the theoretical approach of **HiScore** is credited to a collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd).
