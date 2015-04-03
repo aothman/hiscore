@@ -79,3 +79,20 @@ class EngineTestCase(unittest.TestCase):
 		mydict = {(0,0): 0, (100,100): 100}
 		myfunc = create(mydict,[1,1])
 		self.assertEqual(myfunc.calculate([5,10]),pickle.loads(pickle.dumps(myfunc)).calculate([5,10]))
+
+	def test_extreme(self):
+		mydict = {(0.0,): 100.0, (30.0,): 30.0, (10.0,): 60.0, (5.0,): 85.0, (20.0,): 50.0, (10000.0,): 0.0}
+		myfunc = create(mydict,[-1])
+		self.assertEqual(myfunc.calculate([10000])[0],0.0)
+		self.assertEqual(myfunc.calculate([30])[0],30.0)
+
+	def test_nodiff_y(self):
+		mydict = {(0.0,): 50.0, (100.0,): 50.0}
+		myfunc = create(mydict,[-1])
+		self.assertAlmostEqual(myfunc.calculate([50])[0],50.0)
+
+	def test_nodiff_x(self):
+		mydict = {(0,1): 10, (0,2): 20}
+		myfunc = create(mydict, [1,1])
+		self.assertAlmostEqual(myfunc.calculate([(0,1)])[0],10.0)
+

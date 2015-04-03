@@ -33,7 +33,7 @@ class HiScoreEngine:
     if not np.sum(np.absolute(self.monorel)) == len(monotone_relationship):
       raise ScoreCreationError("Entries in monotone_relationship vector must be 1 or -1 exclusively.")
     # Scale all values to fall in unit length
-    self.scale = self.monorel*(np.amax(np_input, axis=0)-np.amin(np_input, axis=0))
+    self.scale = self.monorel*(np.clip(np.amax(np_input, axis=0)-np.amin(np_input, axis=0),.001,1000))
     # Create new structure to hold the scaled reference set
     self.points = {}
     for (p,v) in reference_set_dict.iteritems():
@@ -98,7 +98,7 @@ class HiScoreEngine:
         constraints += [lhs_sup >= vtwo-vone, lhs_inf <= vtwo-vone]
 
     # Optimization : minimize cone width
-    objective = cvx.Minimize(cvx.sum_squares(sup_plus_vars-inf_plus_vars)+cvx.sum_squares(inf_minus_vars-sup_minus_vars))
+    objective = cvx.Minimize(cvx.norm(sup_plus_vars-inf_plus_vars)+cvx.norm(inf_minus_vars-sup_minus_vars))
     p = cvx.Problem(objective, constraints)
     # Run it!
     try:
