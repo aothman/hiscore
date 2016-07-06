@@ -1,7 +1,7 @@
 __author__ = 'Abraham Othman'
-__copyright__ = 'Copyright 2015, Abraham Othman'
+__copyright__ = 'Copyright 2016, Abraham Othman'
 
-__version__ = '1.2.0'
+__version__ = '1.3.0'
 __maintainer__ = 'Abraham Othman'
 __email__ = 'aothman@cs.cmu.edu'
 
