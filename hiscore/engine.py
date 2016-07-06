@@ -102,7 +102,7 @@ class HiScoreEngine:
     p = cvx.Problem(objective, constraints)
     # Run it!
     try:
-      p.solve(verbose=False)
+      p.solve(verbose=False, solver=cvx.CVXOPT, kktsolver='robust', refinement=3)
     except Exception as e:
       print e
     # Post-mortem...
