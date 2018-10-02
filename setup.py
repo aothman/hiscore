@@ -1,11 +1,18 @@
 from setuptools import setup, find_packages
-from hiscore import __version__, __maintainer__, __email__
+
+__author__ = 'Abraham Othman'
+__copyright__ = 'Copyright 2018, Abraham Othman'
+
+__version__ = '1.6.0'
+__maintainer__ = 'Abraham Othman'
+__email__ = 'abrahamo@wharton.upenn.edu'
 
 long_description = open('README.md').read()
 
 install_requires = [
   'numpy',
-  'cvxpy'
+  'cvxpy>=1.0.0',
+  'cvxopt'
 ]
 
 setup(
@@ -22,7 +29,8 @@ setup(
   classifiers =[
     'Development Status :: 5 - Production/Stable',
     'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: GNU Affero General Public License v3',
-    'Programming Language :: Python :: 2'
+    'License :: OSI Approved :: BSD License',
+    'Programming Language :: Python :: 2',
+    'Programming Language :: Python :: 3'
   ]
 )

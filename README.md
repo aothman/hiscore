@@ -6,6 +6,12 @@ Scores are a way for domain experts to communicate the quality of a complex, mul
 
 **HiScore** provides a new way for domain experts to quickly create and improve intuitive scoring functions: by using *reference sets*, a set of representative objects that are assigned scores.
 
+## Installation Notes
+
+**HiScore** version 1.6.0 (and higher) supports both Python 2 and Python 3. The package is installable in the typical way, e.g., with `pip install hiscore`.
+
+Please note that **your installation will fail if you do not have numpy installed already**. This appears to be a failure on the part of one of the required python packages, **ecos**, to properly install from `pip`. Every other required package should be installed automatically when using `pip`.
+
 ## Demonstration
 
 We'll use a highly simplified version of the [World Health Organization safety score for water wells](http://www.ncbi.nlm.nih.gov/pubmed/22717748) to show how to use **HiScore**.
@@ -21,17 +27,17 @@ Observe that score should be *increasing* in both of these attributes (e.g., for
 
 To quickly create an intelligent score, you can start by determining, low, middle, and high values for each attribute and then labeling all the combinations of these values. (Of course, you can label other objects as well!) For our water well score, distance could have a low value of 0m, a middle value of 10m, and a high value of 50m, while size could have a low value of 1 sq.ft., a middle value of 25 sq.ft., and a high value of 100 sq.ft. labeling all combinations of these values could yield the following reference set:
 
-	Distance | Size | Score
-	--------- | ---- | -----
-	0  | 1  | 0
-	0 | 25 | 5
-	0  | 100  | 10
-	10 | 1  | 20
-	10  | 25 | 50
-	10 | 100 | 60
-	50 | 1  | 65
-	50  | 25 | 90
-	50 | 100 | 100
+Distance | Size | Score
+--------- | ---- | -----
+0  | 1  | 0
+0 | 25 | 5
+0  | 100  | 10
+10 | 1  | 20
+10  | 25 | 50
+10 | 100 | 60
+50 | 1  | 65
+50  | 25 | 90
+50 | 100 | 100
 
 
 ### Creating, Improving, and Querying the Scoring Function
@@ -46,11 +52,11 @@ reference_set = {(0,1): 0, (0,25): 5, (0,100): 10, (10,1): 20, (10,25): 50, (10,
 score_function = hiscore.create(reference_set, [1,1], minval=0, maxval=100)
 ```
 
-The resulting scoring function interpolates exactly through the reference set:
+The resulting scoring function interpolates exactly through the reference set (within a small epsilon):
 
 ```python	
-zip(reference_set.keys(), score_function.calculate(reference_set.keys()))
-# Returns [((0, 1), 0.0), ((10, 100), 60.0), ((10, 1), 20.0), ((0, 100), 10.0), ((0, 25), 5.0), ((50, 25), 90.0), ((50, 1), 65.0), ((50, 100), 100.0), ((10, 25), 50.0)]
+list(zip(reference_set.keys(), score_function.calculate(reference_set.keys())))
+# Returns [((0, 1), 0.0), ((0, 25), 5.000000037512336), ((0, 100), 10.0), ((10, 1), 20.000000037569762), ((10, 25), 49.999999957685915), ((10, 100), 59.99999995476526), ((50, 1), 65.0), ((50, 25), 90.0), ((50, 100), 100.0)]
 ```
 
 While producing reasonable estimates for points that are not in the reference set
@@ -81,7 +87,7 @@ score_function.calculate([(15,36)])
 
 Here's a three-dimensional figure of the scoring function:
 
-![Demonstration Score Function](http://www.cs.cmu.edu/~aothman/score_function_demo_new.png)
+![Demonstration Score Function](http://aothman.wpengine.com/wp-content/uploads/2018/02/score_function_demo_new.png)
 
 Observe that it is monotone increasing along both axes and piecewise linear, but also how it picks up on shape features from the reference set, increasing more steeply with Distance as opposed to Size.
 
@@ -100,7 +106,7 @@ To be concrete, let's extend our safety score for water wells to depend on two s
 
 Graphically, our water well scoring function will have the following tree shape:
 
-![Demonstration Scoring Tree](http://www.cs.cmu.edu/~aothman/tree_score_demo.png)
+![Demonstration Scoring Tree](http://aothman.wpengine.com/wp-content/uploads/2018/02/tree_score_demo.png)
 
 We can use **HiScore** by first making scoring functions for the two-subscores, again using the low-middle-high system:
 
@@ -156,20 +162,8 @@ On that `HiScoreEngine`, you can call:
 	* 	object: A single object.
 	* 	*Returns a two-element tuple (minimum value, maximum value) based on other entries in the reference set and the initialized minimum and maximum values, if defined.*
 
-## Installation and Requirements
-
-To install **HiScore**, just run
-
-```bash
-$ pip install hiscore
-```
-
-In addition to `numpy`, **HiScore** requires [CVXPY](http://www.cvxpy.org/en/latest/).
 
 ## Credits and References
 Development of the theoretical approach of **HiScore** is credited to a collaboration with [Ken Judd](http://www.hoover.org/fellows/kenneth-l-judd).
 
-The algorithm itself is an extension of the quasi-Kriging technique proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x). I explored a different algorithm for reference-set-based scoring in a [2014 AAAI paper](http://www.cs.cmu.edu/~aothman/splines.pdf).
-
-## Contact and Support
-If you're using or interested in using **HiScore** to develop scores for a specific domain I'd love to hear from you. Please contact me directly at <aothman@cs.cmu.edu>.
+The algorithm itself is an extension of the quasi-Kriging technique proposed by Gleb Beliakov in a [2005 paper](http://link.springer.com/article/10.1007/s10543-005-0028-x). I explored a different algorithm for reference-set-based scoring in a [2014 AAAI paper](https://www.aaai.org/ocs/index.php/AAAI/AAAI14/paper/viewFile/8220/8454).
