@@ -7,8 +7,9 @@ Core methods for creating and calculating scoring functions.
 :license: AGPL, see LICENSE for details.
 """
 import numpy as np
-from errors import MonotoneError, MonotoneBoundsError, ScoreCreationError
 import cvxpy as cvx
+
+from .errors import MonotoneError, MonotoneBoundsError, ScoreCreationError
 
 def create(reference_set_dict, monotone_relationship, minval=None, maxval=None):
   """
@@ -28,7 +29,7 @@ class HiScoreEngine:
   """ Main scoring function class. """
   def __init__(self,reference_set_dict, monotone_relationship, minval, maxval):
     """ Initialize a scoring function. Called through create() above. """
-    np_input = np.array(reference_set_dict.keys(), dtype=float)
+    np_input = np.array(list(reference_set_dict.keys()), dtype=float)
     self.monorel = np.array(monotone_relationship)
     if not np.sum(np.absolute(self.monorel)) == len(monotone_relationship):
       raise ScoreCreationError("Entries in monotone_relationship vector must be 1 or -1 exclusively.")
@@ -36,7 +37,7 @@ class HiScoreEngine:
     self.scale = self.monorel*(np.clip(np.amax(np_input, axis=0)-np.amin(np_input, axis=0),.001,1000))
     # Create new structure to hold the scaled reference set
     self.points = {}
-    for (p,v) in reference_set_dict.iteritems():
+    for (p,v) in reference_set_dict.items():
       key = np.array(p)/self.scale
       self.points[tuple(key.tolist())]=v
     # minval/maxval intelligent handling
@@ -57,7 +58,7 @@ class HiScoreEngine:
     plus_vals, minus_vals = self.__solve__()
     # point_objs holds the cones emanating from each point
     self.point_objs = []
-    for ((p,v),plusv,minusv) in zip(self.points.iteritems(), plus_vals, minus_vals):
+    for ((p,v),plusv,minusv) in zip(self.points.items(), plus_vals, minus_vals):
       sp,ip = zip(*plusv)
       sm,im = zip(*minusv)
       self.point_objs.append(Point(p,v,sp,sm,ip,im))
@@ -66,10 +67,10 @@ class HiScoreEngine:
     """ Solve the optimization problem associated with each point """
     
     # Cones on the plus and minus side
-    sup_plus_vars = cvx.Variable(len(self.points), self.dim)
-    inf_plus_vars = cvx.Variable(len(self.points), self.dim)
-    sup_minus_vars = cvx.Variable(len(self.points), self.dim)
-    inf_minus_vars = cvx.Variable(len(self.points), self.dim)
+    sup_plus_vars = cvx.Variable(shape=(len(self.points), self.dim))
+    inf_plus_vars = cvx.Variable(shape=(len(self.points), self.dim))
+    sup_minus_vars = cvx.Variable(shape=(len(self.points), self.dim))
+    inf_minus_vars = cvx.Variable(shape=(len(self.points), self.dim))
     constraints = [sup_plus_vars >= 0, inf_plus_vars >= 0, sup_minus_vars >= 0, sup_plus_vars >= 0]
 
     # inf/sup relational constraints
@@ -77,9 +78,9 @@ class HiScoreEngine:
     constraints += [sup_minus_vars <= inf_minus_vars]
 
     # Cone constraints
-    for (i,(pone,vone)) in enumerate(self.points.iteritems()):
+    for (i,(pone,vone)) in enumerate(self.points.items()):
       # point i has to be able to project into point j
-      for (j,(ptwo,vtwo)) in enumerate(self.points.iteritems()):
+      for (j,(ptwo,vtwo)) in enumerate(self.points.items()):
         if i==j: continue
         lhs_sup = 0.0
         lhs_inf = 0.0
@@ -101,17 +102,14 @@ class HiScoreEngine:
     objective = cvx.Minimize(cvx.norm(sup_plus_vars-inf_plus_vars)+cvx.norm(inf_minus_vars-sup_minus_vars))
     p = cvx.Problem(objective, constraints)
     # Run it!
-    try:
-      p.solve(verbose=False, solver=cvx.CVXOPT, kktsolver='robust', refinement=3)
-    except Exception as e:
-      print e
+    p.solve(verbose=False, solver=cvx.CVXOPT, kktsolver='robust', refinement=5)
     # Post-mortem...
     if p.status != 'optimal' and p.status != 'optimal_inaccurate':
       raise ScoreCreationError("Could not create scoring function: Optimization Failed")
       return None
     # Pull out the coefficients from the variables
-    plus_vars = [[(sup_plus_vars[i,j].value,inf_plus_vars[i,j].value) for j in xrange(self.dim)] for i in xrange(len(self.points))]
-    minus_vars = [[(sup_minus_vars[i,j].value,inf_minus_vars[i,j].value) for j in xrange(self.dim)] for i in xrange(len(self.points))]
+    plus_vars = [[(sup_plus_vars[i,j].value,inf_plus_vars[i,j].value) for j in range(self.dim)] for i in range(len(self.points))]
+    minus_vars = [[(sup_minus_vars[i,j].value,inf_minus_vars[i,j].value) for j in range(self.dim)] for i in range(len(self.points))]
     return plus_vars, minus_vars
 
   def __monotone_rel__(self,a,b):
@@ -129,7 +127,7 @@ class HiScoreEngine:
 
   def __check_monotonicity__(self):
     """ Check monotone relationships of points. Raises MonotoneError on failure. """
-    for (x,v) in self.points.iteritems():
+    for (x,v) in self.points.items():
       points_greater_than = filter(lambda point: x==point or self.__monotone_rel__(point,x)==1, self.points.keys())
       for gt in points_greater_than:
         if self.points[gt] < v:
@@ -143,7 +141,7 @@ class HiScoreEngine:
     """ Check that all (adjusted) points are within bounds. Raises MonotoneBoundsError on failure. """
     maxtest = 1e47 if self.maxval is None else self.maxval
     mintest = -1e47 if self.minval is None else self.minval
-    for (x,v) in self.points.iteritems():
+    for (x,v) in self.points.items():
       if v > maxtest:
         raise MonotoneBoundsError(x*self.scale,v,self.maxval,"maximum")
       if v < mintest:
