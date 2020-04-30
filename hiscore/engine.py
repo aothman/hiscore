@@ -4,7 +4,7 @@ hiscore.engine
 Core methods for creating and calculating scoring functions.
 
 :copyright: (c) 2014 by Abraham Othman.
-:license: AGPL, see LICENSE for details.
+:license: BSD, see LICENSE for details.
 """
 import numpy as np
 import cvxpy as cvx
